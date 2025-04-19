@@ -12,13 +12,15 @@ namespace Estacionamiento.Classes
 {
     internal static class PDFMaker
     {
-        //public static string Dir = $"D:\\Daniel\\Tickets";
         public static string Dir = $"C:\\TicketsEstacionamiento";
         public static void MakeTicket(Ticket ticket)
         {
             string path = $"{Dir}\\{ticket.Id}.pdf";
             string parkingName = "Estacionamiento las Americas";
-            ImageData qrCode = CreateQrCode("Datos de prueba");
+            ImageData qrCode = CreateQrCode(@$"
+                Folio: {ticket.Id}
+                Hora de ingreso: {ticket.GetCheckInHour(":")}
+                ");
 
             try
             {
@@ -70,7 +72,10 @@ namespace Estacionamiento.Classes
                     doc.Close();
 
                     MessageBox.Show("Ticket Guardado");
-                    OpenPDF(path);
+                    var form = new TicketsList();
+                        form.Show();
+
+                    //OpenPDF(path);
 
                 }
                 }
@@ -85,12 +90,20 @@ namespace Estacionamiento.Classes
         {
             string path = $"{Dir}\\{ticket.Id}.pdf";
             string parkingName = "Estacionamiento las Americas";
-            ImageData qrCode = CreateQrCode("Datos de prueba");
+            ImageData qrCode = CreateQrCode(@$"
+                Folio: {ticket.Id}
+                Hora de ingreso: {ticket.GetCheckInHour(":")}
+                Hora de salida: {ticket.GetCheckOutHour(":")}
+                Total a pagar: {ticket.Total:2F}
+                ");
 
-            if (File.Exists(path)) File.Delete(path); 
+
 
             try
             {
+                //Eliminar el archivo pdf
+                if (File.Exists(path)) File.Delete(path); 
+
                 //Crear el archivo PDF
                 using (var writer = new PdfWriter(path))
                 {
@@ -163,7 +176,7 @@ namespace Estacionamiento.Classes
         public static ImageData CreateQrCode(string data)
         {
             QRCodeGenerator qrGenerator = new();
-            using QRCodeData qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
+            using QRCodeData qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q, true);
             QRCode qrCode = new(qrCodeData);
             Bitmap qrCodeImage = qrCode.GetGraphic(20);
 
